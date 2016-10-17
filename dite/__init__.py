@@ -11,6 +11,8 @@ import httplib
 import json
 import logging
 
+import sys
+
 class ElasticsearchFDW (ForeignDataWrapper):
 
     def __init__(self, options, columns):
@@ -69,6 +71,10 @@ class ElasticsearchFDW (ForeignDataWrapper):
         return 'id';
 
     def es_index(self, id, values):
+        for col in values:
+            if values[col] is not None and self.columns[col].base_type_name in ('json', 'jsonb'):
+                values[col] = json.loads(values[col], 'utf-8')
+
         content = json.dumps(values)
 
         conn = httplib.HTTPConnection(self.host, self.port)
